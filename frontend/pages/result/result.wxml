@@ -1,0 +1,85 @@
+<view class="container">
+  <!-- Canvas 区域 -->
+  <view class="canvas-section">
+    <view class="canvas-header">
+      <text class="canvas-title">拼豆图纸</text>
+      <view class="canvas-controls">
+        <view class="control-item {{showGrid ? 'active' : ''}}" bindtap="toggleGrid">
+          网格线
+        </view>
+      </view>
+    </view>
+    
+    <view class="canvas-container" catchtouchstart="handleTouchStart" catchtouchmove="handleTouchMove" catchtouchend="handleTouchEnd">
+      <canvas 
+        type="2d" 
+        id="gridCanvas" 
+        class="grid-canvas"
+        style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+      ></canvas>
+    </view>
+    
+    <view class="zoom-controls">
+      <view class="zoom-btn" bindtap="zoomOut">−</view>
+      <text class="zoom-text">{{Math.round(scale * 100)}}%</text>
+      <view class="zoom-btn" bindtap="zoomIn">+</view>
+    </view>
+  </view>
+
+  <!-- 色板信息 -->
+  <view class="palette-section">
+    <view class="palette-header">
+      <text class="palette-title">使用的颜色</text>
+      <text class="palette-count">{{palette.length}} 种颜色</text>
+    </view>
+    
+    <scroll-view class="palette-scroll" scroll-x>
+      <view class="palette-list">
+        <view 
+          class="palette-item" 
+          wx:for="{{palette}}" 
+          wx:key="index"
+          bindtap="selectColor"
+          data-index="{{index}}"
+        >
+          <view class="color-preview" style="background-color: {{item.hex}};"></view>
+          <view class="color-info">
+            <text class="color-hex">{{item.hex}}</text>
+            <text class="color-count">{{item.count}} 颗</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 统计信息 -->
+  <view class="stats-section">
+    <view class="stats-header">
+      <text class="stats-title">图纸信息</text>
+    </view>
+    <view class="stats-list">
+      <view class="stats-item">
+        <text class="stats-label">网格尺寸</text>
+        <text class="stats-value">{{gridWidth}} × {{gridHeight}}</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-label">总豆数</text>
+        <text class="stats-value">{{totalBeads}}</text>
+      </view>
+      <view class="stats-item">
+        <text class="stats-label">颜色数量</text>
+        <text class="stats-value">{{palette.length}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <view class="action-row">
+      <button class="action-btn btn-secondary" bindtap="goBack">返回首页</button>
+      <button class="action-btn btn-primary" bindtap="exportImage" loading="{{exporting}}">
+        {{exporting ? '导出中...' : '导出图片'}}
+      </button>
+    </view>
+  </view>
+</view>

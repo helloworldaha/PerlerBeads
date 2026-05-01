@@ -1,0 +1,107 @@
+# ============================================
+# Go Backend
+# ============================================
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go binary output
+backend/server
+
+# ============================================
+# Uploads and Output (runtime generated)
+# ============================================
+
+backend/uploads/*
+backend/output/*
+backend/static/*
+
+# Keep .gitkeep files
+!backend/uploads/.gitkeep
+!backend/output/.gitkeep
+!backend/static/.gitkeep
+
+# ============================================
+# WeChat Mini Program (微信小程序)
+# ============================================
+
+# Node dependencies
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+frontend/.miniprogram/
+
+# Private config (contains sensitive info)
+frontend/project.private.config.json
+
+# ============================================
+# IDE
+# ============================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# OS
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ============================================
+# Logs
+# ============================================
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# ============================================
+# Environment files
+# ============================================
+
+.env
+.env.local
+.env.*.local

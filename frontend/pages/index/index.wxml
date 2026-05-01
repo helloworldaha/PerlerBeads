@@ -1,0 +1,74 @@
+<view class="container">
+  <!-- 上传区域 -->
+  <view class="upload-section">
+    <view class="upload-title">上传图片</view>
+    <view class="upload-area" bindtap="chooseImage">
+      <block wx:if="{{!selectedImage}}">
+        <view class="upload-placeholder">
+          <image class="upload-icon" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMyIDE2TDMyIDQ4TTQ4IDMyTDE2IDMyIiBzdHJva2U9IiM2NjYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CjxwYXRoIGQ9Ik0xNiAxNkg0OFY0OEgxNloiIHN0cm9rZT0iIzY2NiIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo="></image>
+          <view class="upload-text">点击选择图片</view>
+          <view class="upload-hint">支持 jpg、png 格式，大小不超过 2MB</view>
+        </view>
+      </block>
+      <block wx:else>
+        <image class="preview-image" src="{{selectedImage}}" mode="aspectFit"></image>
+      </block>
+    </view>
+    <view wx:if="{{selectedImage}}" class="reselect-btn" bindtap="chooseImage">
+      重新选择
+    </view>
+  </view>
+
+  <!-- 参数配置 -->
+  <view class="config-section">
+    <view class="config-title">参数设置</view>
+    
+    <!-- 尺寸选择 -->
+    <view class="config-item">
+      <view class="config-label">网格尺寸</view>
+      <view class="size-options">
+        <view class="size-option {{size === 16 ? 'active' : ''}}" bindtap="selectSize" data-size="16">16</view>
+        <view class="size-option {{size === 32 ? 'active' : ''}}" bindtap="selectSize" data-size="32">32</view>
+        <view class="size-option {{size === 64 ? 'active' : ''}}" bindtap="selectSize" data-size="64">64</view>
+      </view>
+    </view>
+
+    <!-- 颜色数量 -->
+    <view class="config-item">
+      <view class="config-label">颜色数量</view>
+      <view class="color-options">
+        <view class="color-option {{colorLimit === 8 ? 'active' : ''}}" bindtap="selectColorLimit" data-limit="8">8 色</view>
+        <view class="color-option {{colorLimit === 16 ? 'active' : ''}}" bindtap="selectColorLimit" data-limit="16">16 色</view>
+        <view class="color-option {{colorLimit === 32 ? 'active' : ''}}" bindtap="selectColorLimit" data-limit="32">32 色</view>
+      </view>
+    </view>
+
+    <!-- 缩放方式 -->
+    <view class="config-item">
+      <view class="config-label">缩放方式</view>
+      <view class="scale-options">
+        <view class="scale-option {{!forceCrop ? 'active' : ''}}" bindtap="selectScaleMode" data-crop="false">保持比例</view>
+        <view class="scale-option {{forceCrop ? 'active' : ''}}" bindtap="selectScaleMode" data-crop="true">强制裁剪</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 生成按钮 -->
+  <view class="generate-section">
+    <button 
+      class="btn-primary {{!selectedImage || loading ? 'disabled' : ''}}" 
+      bindtap="generatePattern"
+      disabled="{{!selectedImage || loading}}"
+    >
+      {{loading ? '生成中...' : '生成拼豆图纸'}}
+    </button>
+  </view>
+
+  <!-- 加载遮罩 -->
+  <view wx:if="{{loading}}" class="loading-mask">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">正在生成图纸，请稍候...</view>
+    </view>
+  </view>
+</view>
