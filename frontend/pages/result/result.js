@@ -71,36 +71,45 @@ Page({
 
   initCanvas() {
     const query = wx.createSelectorQuery()
-    query.select('#gridCanvas')
-      .fields({ node: true, size: true })
+    query.select('.canvas-container')
+      .fields({ size: true })
       .exec((res) => {
         if (!res[0]) return
 
-        const canvas = res[0].node
-        const ctx = canvas.getContext('2d')
-
-        const dpr = wx.getSystemInfoSync().pixelRatio
-        const maxSize = 600
+        const containerWidth = res[0].width
+        const containerHeight = res[0].height
+        const maxSize = Math.min(containerWidth, containerHeight) - 20
         const gridLineWidth = 1
 
         const cellSize = Math.floor((maxSize - (Math.max(this.data.gridWidth, this.data.gridHeight) + 1) * gridLineWidth) / Math.max(this.data.gridWidth, this.data.gridHeight))
         const canvasWidth = this.data.gridWidth * cellSize + (this.data.gridWidth + 1) * gridLineWidth
         const canvasHeight = this.data.gridHeight * cellSize + (this.data.gridHeight + 1) * gridLineWidth
 
-        canvas.width = canvasWidth * dpr
-        canvas.height = canvasHeight * dpr
-        ctx.scale(dpr, dpr)
+        const canvasQuery = wx.createSelectorQuery()
+        canvasQuery.select('#gridCanvas')
+          .fields({ node: true, size: true })
+          .exec((canvasRes) => {
+            if (!canvasRes[0]) return
 
-        this.setData({
-          canvasWidth,
-          canvasHeight,
-          _canvas: canvas,
-          _ctx: ctx,
-          _cellSize: cellSize,
-          _gridLineWidth: gridLineWidth
-        })
+            const canvas = canvasRes[0].node
+            const ctx = canvas.getContext('2d')
+            const dpr = wx.getSystemInfoSync().pixelRatio
 
-        this.renderCanvas()
+            canvas.width = canvasWidth * dpr
+            canvas.height = canvasHeight * dpr
+            ctx.scale(dpr, dpr)
+
+            this.setData({
+              canvasWidth,
+              canvasHeight,
+              _canvas: canvas,
+              _ctx: ctx,
+              _cellSize: cellSize,
+              _gridLineWidth: gridLineWidth
+            })
+
+            this.renderCanvas()
+          })
       })
   },
 
@@ -238,10 +247,25 @@ Page({
 
     this.setData({ exporting: true })
 
+    const exportUrl = `${app.globalData.apiBaseUrl}/export?id=${this.data.patternId}`
+    console.log('导出URL:', exportUrl)
+
     wx.downloadFile({
-      url: `${app.globalData.apiBaseUrl}/export?id=${this.data.patternId}`,
+      url: exportUrl,
       success: (res) => {
+        console.log('下载响应:', res)
         if (res.statusCode === 200) {
+          console.log('临时文件路径:', res.tempFilePath)
+          
+          if (!res.tempFilePath) {
+            wx.showToast({
+              title: '下载失败：临时文件路径为空',
+              icon: 'none',
+              duration: 2000
+            })
+            return
+          }
+
           wx.saveImageToPhotosAlbum({
             filePath: res.tempFilePath,
             success: () => {
@@ -252,32 +276,45 @@ Page({
               })
             },
             fail: (err) => {
-              console.log('保存图片失败', err)
-              if (err.errMsg.includes('auth')) {
+              console.log('保存图片失败详情:', JSON.stringify(err))
+              if (err.errMsg.includes('auth') || err.errMsg.includes('denied')) {
                 wx.showModal({
                   title: '提示',
-                  content: '需要授权保存图片到相册',
+                  content: '需要授权保存图片到相册，请在设置中开启相册权限',
                   success: (res) => {
                     if (res.confirm) {
                       wx.openSetting()
                     }
                   }
                 })
+              } else if (err.errMsg.includes('no such file or directory')) {
+                wx.showToast({
+                  title: '临时文件不存在，请重试',
+                  icon: 'none',
+                  duration: 2500
+                })
               } else {
                 wx.showToast({
-                  title: '保存失败',
+                  title: '保存失败：' + (err.errMsg || '未知错误'),
                   icon: 'none',
-                  duration: 2000
+                  duration: 2500
                 })
               }
             }
           })
+        } else {
+          console.log('下载失败，状态码:', res.statusCode)
+          wx.showToast({
+            title: '下载失败：状态码 ' + res.statusCode,
+            icon: 'none',
+            duration: 2000
+          })
         }
       },
       fail: (err) => {
-        console.log('下载图片失败', err)
+        console.log('下载图片失败详情:', JSON.stringify(err))
         wx.showToast({
-          title: '导出失败',
+          title: '下载失败，请检查网络连接',
           icon: 'none',
           duration: 2000
         })

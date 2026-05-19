@@ -10,14 +10,15 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/google/uuid"
 	"perlerbeads/internal/imageproc"
+
+	"github.com/google/uuid"
 )
 
 type PatternData struct {
-	ID      string               `json:"id"`
-	Grid    [][]int              `json:"grid"`
-	Palette []imageproc.Color    `json:"palette"`
+	ID      string            `json:"id"`
+	Grid    [][]int           `json:"grid"`
+	Palette []imageproc.Color `json:"palette"`
 }
 
 type PatternService struct {
@@ -89,6 +90,14 @@ func (s *PatternService) ProcessImage(reader io.Reader, filename string, size, c
 
 	s.patterns.Store(id, pattern)
 
+	cellSize := 20
+	exportImg := imageproc.GridToImageWithGrid(pattern.Grid, pattern.Palette, cellSize)
+	outputPath := filepath.Join(s.outputDir, id+".png")
+	err = imageproc.SaveImageToFile(exportImg, outputPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save export image: %w", err)
+	}
+
 	return pattern, nil
 }
 
@@ -100,19 +109,10 @@ func (s *PatternService) GetPattern(id string) (*PatternData, bool) {
 }
 
 func (s *PatternService) ExportImage(id string) (string, error) {
-	pattern, ok := s.GetPattern(id)
-	if !ok {
-		return "", fmt.Errorf("pattern not found: %s", id)
-	}
-
-	cellSize := 20
-	img := imageproc.GridToImageWithGrid(pattern.Grid, pattern.Palette, cellSize)
-
 	outputPath := filepath.Join(s.outputDir, id+".png")
 
-	err := imageproc.SaveImageToFile(img, outputPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to save exported image: %w", err)
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		return "", fmt.Errorf("export image not found: %s", id)
 	}
 
 	return outputPath, nil

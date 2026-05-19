@@ -47,8 +47,8 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "2.25.0",
-  "appid": "",
+  "libVersion": "3.15.2",
+  "appid": "touristappid",
   "projectname": "PerlerBeads",
   "condition": {},
   "editorSetting": {

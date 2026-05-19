@@ -18,7 +18,7 @@ type ScaleOptions struct {
 	Mode       ScaleMode
 }
 
-func NearestNeighborResize(img image.Image, targetWidth, targetHeight int) image.Image {
+func AreaAverageResize(img image.Image, targetWidth, targetHeight int) image.Image {
 	bounds := img.Bounds()
 	srcWidth := bounds.Dx()
 	srcHeight := bounds.Dy()
@@ -30,24 +30,39 @@ func NearestNeighborResize(img image.Image, targetWidth, targetHeight int) image
 
 	for dstY := 0; dstY < targetHeight; dstY++ {
 		for dstX := 0; dstX < targetWidth; dstX++ {
-			srcX := int(math.Floor(float64(dstX) * xRatio))
-			srcY := int(math.Floor(float64(dstY) * yRatio))
+			srcXStart := int(math.Floor(float64(dstX) * xRatio))
+			srcYStart := int(math.Floor(float64(dstY) * yRatio))
+			srcXEnd := int(math.Floor(float64(dstX+1) * xRatio))
+			srcYEnd := int(math.Floor(float64(dstY+1) * yRatio))
 
-			srcX = min(srcX, srcWidth-1)
-			srcY = min(srcY, srcHeight-1)
+			srcXStart = min(max(srcXStart, 0), srcWidth-1)
+			srcYStart = min(max(srcYStart, 0), srcHeight-1)
+			srcXEnd = min(max(srcXEnd, srcXStart+1), srcWidth)
+			srcYEnd = min(max(srcYEnd, srcYStart+1), srcHeight)
 
-			srcX += bounds.Min.X
-			srcY += bounds.Min.Y
+			var sumR, sumG, sumB, sumA uint64
+			count := 0
 
-			c := img.At(srcX, srcY)
-			r, g, b, a := c.RGBA()
+			for sy := srcYStart; sy < srcYEnd; sy++ {
+				for sx := srcXStart; sx < srcXEnd; sx++ {
+					c := img.At(bounds.Min.X+sx, bounds.Min.Y+sy)
+					r, g, b, a := c.RGBA()
+					sumR += uint64(r >> 8)
+					sumG += uint64(g >> 8)
+					sumB += uint64(b >> 8)
+					sumA += uint64(a >> 8)
+					count++
+				}
+			}
 
-			dst.Set(dstX, dstY, color.RGBA{
-				R: uint8(r >> 8),
-				G: uint8(g >> 8),
-				B: uint8(b >> 8),
-				A: uint8(a >> 8),
-			})
+			if count > 0 {
+				dst.Set(dstX, dstY, color.RGBA{
+					R: uint8(sumR / uint64(count)),
+					G: uint8(sumG / uint64(count)),
+					B: uint8(sumB / uint64(count)),
+					A: uint8(sumA / uint64(count)),
+				})
+			}
 		}
 	}
 
@@ -117,11 +132,18 @@ func ResizeWithOptions(img image.Image, opts ScaleOptions) image.Image {
 		targetWidth, targetHeight = CalculateTargetSize(srcWidth, srcHeight, opts.TargetSize, opts.Mode)
 	}
 
-	return NearestNeighborResize(img, targetWidth, targetHeight)
+	return AreaAverageResize(img, targetWidth, targetHeight)
 }
 
 func min(a, b int) int {
 	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int) int {
+	if a > b {
 		return a
 	}
 	return b
