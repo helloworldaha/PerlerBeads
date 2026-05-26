@@ -12,7 +12,7 @@ RUN git init && \
     git config user.email "docker@example.com" && \
     git commit --allow-empty -m "Initial commit"
 
-COPY backend/ /app/
+COPY . /app/
 
 ENV GOPROXY=https://goproxy.cn,direct
 
