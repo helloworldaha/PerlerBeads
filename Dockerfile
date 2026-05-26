@@ -1,26 +1,29 @@
-FROM golang:1.21-bookworm AS builder
-
-WORKDIR /app
-
-ENV GOPROXY=https://goproxy.cn,direct
-
-COPY backend/go.mod backend/go.sum ./
-RUN go mod download
-
-COPY backend/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server ./cmd/server
-
 FROM node:20-bookworm-slim
-
-WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/server .
+WORKDIR /app
+RUN git init && \
+    git config user.name "Docker Build" && \
+    git config user.email "docker@example.com" && \
+    git commit --allow-empty -m "Initial commit"
 
-RUN mkdir -p uploads output static
+COPY backend/ /app/
+
+ENV GOPROXY=https://goproxy.cn,direct
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    golang-go \
+    && rm -rf /var/lib/apt/lists/* && \
+    cd /app && \
+    go mod download && \
+    CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server ./cmd/server && \
+    mkdir -p uploads output static && \
+    apt-get remove -y --auto-remove golang-go
 
 ENV PORT=8080
 ENV GIN_MODE=release
